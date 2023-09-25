@@ -106,3 +106,58 @@ const GameController = (
 };
 
 
+// Immediately Invoked Function that controls the display
+const screenController = (() => {
+    // Initialize the game with GameController
+    const game = GameController();
+
+    // Queries for the display
+    const playerTurnDiv = document.querySelector('#turn');
+    const boardDiv = document.querySelector('#board');
+
+    const updateScreen = () => {
+        // Reset the board div content
+        boardDiv.textContent = '';
+
+        const board = game.getBoard();
+        const activePlayer = game.getActivePlayer();
+
+        // Update the current player display
+        playerTurnDiv.textContent = `${activePlayer.getName()}'s turn...`;
+
+        // Loop through each cell in the board array 
+        board.forEach((row, index) => {
+            let rowIndex = index;
+            
+            row.forEach((cell, index) => {
+                let columnIndex = index;
+
+                const cellButton = document.createElement("button");
+                cellButton.classList.add("cell");
+                
+                // Define datasets in each element to identify each cell easier
+                cellButton.dataset.column = columnIndex;
+                cellButton.dataset.row = rowIndex;
+                // Update the displayed value 
+                cellButton.textContent = cell.getValue();
+                boardDiv.appendChild(cellButton);
+            });
+        });
+    };
+
+    function clickHandlerBoard(e) {
+        // Get datasets values of the clicked cell 
+        const selectedRow = e.target.dataset.row;
+        const selectedColumn = e.target.dataset.column;
+        // Check to make sure the cell is clicked and not the space in between 
+        if (!selectedColumn && !selectedRow) return;
+        
+        // Call playround function with the selected cell and update the display
+        game.playRound(selectedRow, selectedColumn);
+        updateScreen();
+    };
+
+    boardDiv.addEventListener("click", clickHandlerBoard);
+    
+    updateScreen();
+})();
