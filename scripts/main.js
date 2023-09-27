@@ -77,10 +77,14 @@ const GameController = (
     const players = [playerOne, playerTwo];
     let activePlayer = players[0];
 
+    let gameEnded = false;
+
     // Used to switch the active player when current player finishes his turn  
     const switchPlayerTurn = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
     };
+    
+    const getGameEnded = () => gameEnded;
 
     const getActivePlayer = () => activePlayer;
 
@@ -101,6 +105,7 @@ const GameController = (
     return {
         playRound,
         getActivePlayer,
+        getGameEnded,
         getBoard: board.getBoard
     };
 };
@@ -126,12 +131,8 @@ const screenController = (() => {
         playerTurnDiv.textContent = `${activePlayer.getName()}'s turn...`;
 
         // Loop through each cell in the board array 
-        board.forEach((row, index) => {
-            let rowIndex = index;
-            
-            row.forEach((cell, index) => {
-                let columnIndex = index;
-
+        board.forEach((row, rowIndex) => {
+            row.forEach((cell, columnIndex) => {
                 const cellButton = document.createElement("button");
                 cellButton.classList.add("cell");
                 
