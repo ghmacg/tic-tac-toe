@@ -90,6 +90,28 @@ const GameController = (
 
     const getActivePlayer = () => activePlayer;
 
+    const checkForWin = (token) => {
+        const isToken = (currentCell) => currentCell.getValue() === token;
+        let reorderedBoard = [];
+        
+        for(let i = 0; i < 3; i++) { 
+            let column = [];
+
+            board.getBoard().forEach((row) => column.push(row[i]));
+            reorderedBoard.push(column);
+        };
+        
+        board.getBoard().forEach((row) => {
+           if (row.every(isToken)) gameEnded = true;
+        });
+
+        reorderedBoard.forEach((column) => {
+            if (column.every(isToken)) gameEnded = true;
+        });
+
+        //console.log(`${getActivePlayer().getName()} won!`)
+    };
+
     const playRound = (row, column) => {
         // First check if the value of the selected cell is already played, 
         // if it is stop the move
@@ -100,7 +122,7 @@ const GameController = (
 
         /*  This is where we would check for a winner and handle that logic,
         such as a win message. */
-
+        checkForWin(getActivePlayer().getToken());
         switchPlayerTurn();
     };
 
