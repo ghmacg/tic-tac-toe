@@ -84,6 +84,8 @@ const GameController = (
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
     };
     
+    const setGameEnded = (boolean) => gameEnded = boolean;
+
     const getGameEnded = () => gameEnded;
 
     const getActivePlayer = () => activePlayer;
@@ -106,6 +108,7 @@ const GameController = (
         playRound,
         getActivePlayer,
         getGameEnded,
+        setGameEnded,
         getBoard: board.getBoard
     };
 };
