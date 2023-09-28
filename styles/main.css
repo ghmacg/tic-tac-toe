@@ -37,14 +37,33 @@ body {
     font-weight: var(--text-bold);
 }
 
-#turn {
+#display-container {
+    width: 340px;
+    
+    display: grid;
+    grid-template-columns: 9fr 1fr;
+    gap: 0.8rem;
+}
+
+#turn, 
+#restart {
     background-color: var(--cell-bg);
     box-shadow: var(--cell-shadow);
     
     font-size: var(--text-sm);
 
     border-radius: var(--cell-border-radius);
-    padding: 10px 50px;
+}
+
+#turn {
+    padding: 10px 20px;
+}
+
+#restart {
+    padding: 10px 15px;
+    
+    cursor: pointer;
+    border: none;
 }
 
 #board {
@@ -58,14 +77,13 @@ body {
 }
 
 .cell {
-    cursor: pointer;
-
     background-color: var(--cell-bg);
     box-shadow: var(--cell-shadow);
-
+    
     font-size: var(--text-md);
     color: var(--text-color);
-
+    
+    cursor: pointer;
     border: none;
     border-radius: var(--cell-border-radius);
 
