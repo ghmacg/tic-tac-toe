@@ -37,3 +37,13 @@ body {
     font-weight: var(--text-bold);
 }
 
+#turn {
+    background-color: var(--cell-bg);
+    box-shadow: var(--cell-shadow);
+    
+    font-size: var(--text-sm);
+
+    border-radius: var(--cell-border-radius);
+    padding: 10px 50px;
+}
+
