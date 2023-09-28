@@ -31,3 +31,9 @@ body {
     align-items: center;
     gap: 3rem;
 }
+
+#title {
+    font-size: var(--text-lg);
+    font-weight: var(--text-bold);
+}
+
