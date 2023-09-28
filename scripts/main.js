@@ -32,43 +32,6 @@ const Cell = () => {
 };
 
 
-const Game = () => {
-    let isEnded = false;
-
-    let isTied = false;
-
-    let winner = undefined;
-
-    const setIsEnded = (boolean) => isEnded = boolean;
-
-    const getIsEnded = () => isEnded;
-
-    const setIsTied = (boolean) => isTied = boolean;
-    
-    const getIsTied = () => isTied;
-
-    const setWinner = (player) => winner = player; 
-    
-    const getWinner = () => winner;
-
-    const reset = () => {
-        isEnded = false;
-        isTied = false;
-        winner = undefined;
-    };
-    
-    return {
-        setIsEnded,
-        getIsEnded,
-        setIsTied,
-        getIsTied,
-        setWinner,
-        getWinner,
-        reset
-    };
-};
-
-
 // Logic of the gameboard
 const Gameboard = () => {
     // Define varibles for the area of gameboard,
@@ -108,12 +71,15 @@ const GameController = (
 ) => {
     // Initialize Gameboard and Players objects
     const board = Gameboard();
-    const gameInfo = Game();
     const playerOne = Player(playerOneName, 'X');
     const playerTwo = Player(playerTwoName, 'O');
 
     const players = [playerOne, playerTwo];
     let activePlayer = players[0];
+
+    let isEnded = false;
+    let isTied = false;
+    let winner = undefined;
 
     // Used to switch the active player when current player finishes his turn  
     const switchPlayerTurn = () => {
@@ -122,7 +88,19 @@ const GameController = (
 
     const getActivePlayer = () => activePlayer;
 
-    const checkForWin = (token) => {
+    const getIsEnded = () => isEnded;
+    
+    const getIsTied = () => isTied;
+    
+    const getWinner = () => winner;
+
+    const reset = () => {
+        isEnded = false;
+        isTied = false;
+        winner = undefined;
+    };
+
+    const checkForWin = () => {
         // Vertical and diagonal combinations to win,
         //each number in each array corresponds to an index
         const combos = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [0, 1, 2], [2, 1, 0]];
@@ -146,16 +124,16 @@ const GameController = (
         // Loop to check if a player have won vertically or diagonally
         combosResults.forEach((reorderedValues) => {
             if (reorderedValues.every(isPlayerToken)) {
-                gameInfo.setIsEnded(true);
-                gameInfo.setWinner(activePlayer.getName());
+                isEnded = true;
+                winner = activePlayer.getName();
             };
         });
 
         // Loop to check if a player have won horizontally
         board.getBoard().forEach((row) => {
             if (row.every(isPlayerToken)) {
-                gameInfo.setIsEnded(true);
-                gameInfo.setWinner(activePlayer.getName());
+                isEnded = true;
+                winner = activePlayer.getName();
             };
         });
     };
@@ -171,19 +149,18 @@ const GameController = (
             });
         });
 
-        if (boardValues.every(isToken)) gameInfo.setIsTied(true);
+        if (boardValues.every(isToken)) isTied = true;
     };
 
     const playRound = (row, column) => {
-        // First check if the value of the selected cell is already played, 
-        // if it is stop the move
+        // First check if the value of the selected cell is already played
         if (board.getBoard()[row][column].getValue() !== '') return;
         
         // Make the selected cell take the value of players token
         board.dropToken(row, column, activePlayer.getToken());
 
         checkForWin();
-        if (gameInfo.getIsEnded() === false) checkForTie();
+        if (isEnded === false) checkForTie();
         
         switchPlayerTurn();
     };
@@ -191,9 +168,10 @@ const GameController = (
     return {
         playRound,
         getActivePlayer,
-        getWinner: gameInfo.getWinner,
-        getIsEnded: gameInfo.getIsEnded,
-        getIsTied: gameInfo.getIsTied,
+        getWinner,
+        getIsEnded,
+        getIsTied,
+        reset,
         getBoard: board.getBoard
     };
 };
@@ -240,6 +218,8 @@ const screenController = (() => {
         const selectedColumn = e.target.dataset.column;
         // Check to make sure the cell is clicked and not the space in between 
         if (!selectedColumn && !selectedRow) return;
+
+        if (game.getIsEnded() || game.getIsTied()) return;
         
         // Call playround function with the selected cell and update the display
         game.playRound(selectedRow, selectedColumn);
