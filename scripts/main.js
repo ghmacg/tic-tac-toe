@@ -198,7 +198,13 @@ const screenController = (() => {
         const activePlayer = game.getActivePlayer();
 
         // Update the current player display
-        playerTurnDiv.textContent = `${activePlayer.getName()}'s turn...`;
+        if (game.getIsEnded()) {
+            playerTurnDiv.textContent = `${game.getWinner()} won!`;
+        } else if (game.getIsTied()) {
+            playerTurnDiv.textContent = 'Tie!';
+        } else {
+            playerTurnDiv.textContent = `${activePlayer.getName()}'s turn...`;
+        }
 
         // Loop through each cell in the board array 
         board.forEach((row, rowIndex) => {
