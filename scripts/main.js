@@ -197,7 +197,7 @@ const screenController = (() => {
         const board = game.getBoard();
         const activePlayer = game.getActivePlayer();
 
-        // Update the current player display
+        // Update turn div text depending on game status
         if (game.getIsEnded()) {
             playerTurnDiv.textContent = `${game.getWinner()} won!`;
         } else if (game.getIsTied()) {
