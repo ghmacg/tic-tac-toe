@@ -16,3 +16,11 @@
     --cell-border-radius: 25px;
 }
 
+html {
+    background-color: var(--bg-color);
+}
+
+body {
+    font-family: var(--font-family);
+    color: var(--text-color);
+}
