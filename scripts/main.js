@@ -94,7 +94,9 @@ const GameController = (
     
     const getWinner = () => winner;
 
-    const reset = () => {
+    const restart = () => {
+        board = Gameboard();
+        activePlayer = players[0];
         isEnded = false;
         isTied = false;
         winner = undefined;
@@ -162,7 +164,7 @@ const GameController = (
         board.dropToken(row, column, activePlayer.getToken());
 
         checkForWin();
-        if (isEnded === false) checkForTie();
+        if (!isEnded) checkForTie();
         
         switchPlayerTurn();
     };
@@ -173,7 +175,7 @@ const GameController = (
         getWinner,
         getIsEnded,
         getIsTied,
-        reset,
+        restart,
         getBoard: board.getBoard
     };
 };
