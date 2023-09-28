@@ -47,3 +47,26 @@ body {
     padding: 10px 50px;
 }
 
+#board {
+    width: 340px;
+    height: 340px;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 0.8rem;
+}
+
+.cell {
+    cursor: pointer;
+
+    background-color: var(--cell-bg);
+    box-shadow: var(--cell-shadow);
+
+    font-size: var(--text-md);
+    color: var(--text-color);
+
+    border: none;
+    border-radius: var(--cell-border-radius);
+
+}
