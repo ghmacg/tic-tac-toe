@@ -1,4 +1,4 @@
-// Factory fucntion to create player objects
+// Factory function to create player objects
 const Player = (
     name,
     token
@@ -91,25 +91,35 @@ const GameController = (
     const getActivePlayer = () => activePlayer;
 
     const checkForWin = (token) => {
-        const isToken = (currentCell) => currentCell.getValue() === token;
-        let reorderedBoard = [];
-        
-        for(let i = 0; i < 3; i++) { 
-            let column = [];
+        // Vertical and diagonal combinations to win,
+        //each number in each array corresponds to an index
+        const combos = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [0, 1, 2], [2, 1, 0]];
+        let combosResults = [];
 
-            board.getBoard().forEach((row) => column.push(row[i]));
-            reorderedBoard.push(column);
-        };
+        const isToken = (currentCell) => currentCell.getValue() === getActivePlayer().getToken();
         
+        // Loop to take values of gameboard and order them as each combo
+        combos.forEach((combo) => {
+            const reorderedValues = [];
+            let row = 0;
+
+            combo.forEach((index) => {
+                reorderedValues.push(board.getBoard()[row][index]);
+                row++;
+            });
+            
+            combosResults.push(reorderedValues);
+        });
+        
+        // Loop to check if a player have won vertically or diagonally
+        combosResults.forEach((reorderedValues) => {
+            if (reorderedValues.every(isToken)) gameEnded = true;
+        });
+
+        // Loop to check if a player have won horizontally
         board.getBoard().forEach((row) => {
-           if (row.every(isToken)) gameEnded = true;
+            if (row.every(isToken)) gameEnded = true;
         });
-
-        reorderedBoard.forEach((column) => {
-            if (column.every(isToken)) gameEnded = true;
-        });
-
-        //console.log(`${getActivePlayer().getName()} won!`)
     };
 
     const playRound = (row, column) => {
@@ -120,9 +130,7 @@ const GameController = (
         // Make the selected cell take the value of players token
         board.dropToken(row, column, getActivePlayer().getToken());
 
-        /*  This is where we would check for a winner and handle that logic,
-        such as a win message. */
-        checkForWin(getActivePlayer().getToken());
+        checkForWin();
         switchPlayerTurn();
     };
 
