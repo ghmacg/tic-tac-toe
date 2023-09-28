@@ -50,6 +50,14 @@ const Gameboard = () => {
 
     const getBoard = () => board; 
 
+    const restartBoard = () => {
+        board.forEach((row) => {
+            row.forEach((cell) => {
+                cell.addToken('');
+            });
+        });
+    };
+
     // Assigns the token value of the player to the selected cell 
     const dropToken = (selectedRow, selectedColumn, player) => {
         board[selectedRow][selectedColumn].addToken(player);
@@ -58,6 +66,7 @@ const Gameboard = () => {
     return {
         getBoard, 
         dropToken, 
+        restartBoard
     };
 };
 
@@ -95,7 +104,7 @@ const GameController = (
     const getWinner = () => winner;
 
     const restart = () => {
-        board = Gameboard();
+        board.restartBoard();
         activePlayer = players[0];
         isEnded = false;
         isTied = false;
@@ -187,8 +196,9 @@ const screenController = (() => {
     const game = GameController();
 
     // Queries for the display
-    const playerTurnDiv = document.querySelector('#turn');
-    const boardDiv = document.querySelector('#board');
+    const playerTurnDiv = document.getElementById('turn');
+    const boardDiv = document.getElementById('board');
+    const restartButton = document.getElementById('restart');
 
     const updateScreen = () => {
         // Reset the board div content
@@ -222,7 +232,7 @@ const screenController = (() => {
         });
     };
 
-    function clickHandlerBoard(e) {
+    function clickHandlerBoard (e) {
         // Get datasets values of the clicked cell 
         const selectedRow = e.target.dataset.row;
         const selectedColumn = e.target.dataset.column;
@@ -236,7 +246,14 @@ const screenController = (() => {
         updateScreen();
     };
 
+    function clickHandlerRestart () {
+        game.restart();
+        updateScreen();
+    };
+
     boardDiv.addEventListener("click", clickHandlerBoard);
+
+    restartButton.addEventListener('click', clickHandlerRestart);
     
     updateScreen();
 })();
