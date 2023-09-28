@@ -18,7 +18,7 @@ const Player = (
 const Cell = () => {
     let value = '';
 
-    // This changes the cell value to the players token value
+    // Changes the cell value to the players token value
     const addToken = (player) => {
         value = player;
     };
@@ -39,7 +39,6 @@ const Gameboard = () => {
     const rows = 3;
     const columns = 3;
     const board = [];
-
     // Push into board 3 arrays with 3 cell spaces in each,
     // to simulate the area we want for the game
     for (let i = 0; i < rows; i++) {
@@ -77,11 +76,12 @@ const GameController = (
     const players = [playerOne, playerTwo];
     let activePlayer = players[0];
 
+    // Game info variables
     let isEnded = false;
     let isTied = false;
     let winner = undefined;
 
-    // Used to switch the active player when current player finishes his turn  
+    // Switch the active player when current player finishes his turn  
     const switchPlayerTurn = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
     };
@@ -102,13 +102,13 @@ const GameController = (
 
     const checkForWin = () => {
         // Vertical and diagonal combinations to win,
-        //each number in each array corresponds to an index
+        // each number in each array corresponds to an index
         const combos = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [0, 1, 2], [2, 1, 0]];
         let combosResults = [];
 
         const isPlayerToken = (currentCell) => currentCell.getValue() === activePlayer.getToken();
         
-        // Loop to take values of gameboard and order them as each combo
+        // Take values of gameboard and order them as each combo
         combos.forEach((combo) => {
             const reorderedValues = [];
             let row = 0;
@@ -121,7 +121,7 @@ const GameController = (
             combosResults.push(reorderedValues);
         });
         
-        // Loop to check if a player have won vertically or diagonally
+        // Check if a player have won vertically or diagonally
         combosResults.forEach((reorderedValues) => {
             if (reorderedValues.every(isPlayerToken)) {
                 isEnded = true;
@@ -129,7 +129,7 @@ const GameController = (
             };
         });
 
-        // Loop to check if a player have won horizontally
+        // Check if a player have won horizontally
         board.getBoard().forEach((row) => {
             if (row.every(isPlayerToken)) {
                 isEnded = true;
@@ -143,12 +143,14 @@ const GameController = (
 
         const isToken = (currentValue) => currentValue === 'X' || currentValue === 'O';
 
+        // Take all values of gameboard, including blank spaces
         board.getBoard().forEach((row) => {
             row.forEach((cell) => {
                 boardValues.push(cell.getValue());
             });
         });
 
+        // Check if every space is a token
         if (boardValues.every(isToken)) isTied = true;
     };
 
