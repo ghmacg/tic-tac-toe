@@ -33,35 +33,35 @@ const Cell = () => {
 
 
 const Game = () => {
-    let gameEnded = false;
+    let isEnded = false;
 
-    let gameTied = false;
+    let isTied = false;
 
     let winner = undefined;
 
-    const setGameEnded = (boolean) => gameEnded = boolean;
+    const setIsEnded = (boolean) => isEnded = boolean;
 
-    const getGameEnded = () => gameEnded;
+    const getIsEnded = () => isEnded;
 
-    const setGameTied = (boolean) => gameTied = boolean;
+    const setIsTied = (boolean) => isTied = boolean;
     
-    const getGameTied = () => gameTied;
+    const getIsTied = () => isTied;
 
     const setWinner = (player) => winner = player; 
     
     const getWinner = () => winner;
 
     const reset = () => {
-        gameEnded = false;
-        gameTied = false;
+        isEnded = false;
+        isTied = false;
         winner = undefined;
     };
     
     return {
-        setGameEnded,
-        getGameEnded,
-        setGameTied,
-        getGameTied,
+        setIsEnded,
+        getIsEnded,
+        setIsTied,
+        getIsTied,
         setWinner,
         getWinner,
         reset
@@ -128,7 +128,7 @@ const GameController = (
         const combos = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [0, 1, 2], [2, 1, 0]];
         let combosResults = [];
 
-        const isPlayerToken = (currentCell) => currentCell.getValue() === getActivePlayer().getToken();
+        const isPlayerToken = (currentCell) => currentCell.getValue() === activePlayer.getToken();
         
         // Loop to take values of gameboard and order them as each combo
         combos.forEach((combo) => {
@@ -146,16 +146,16 @@ const GameController = (
         // Loop to check if a player have won vertically or diagonally
         combosResults.forEach((reorderedValues) => {
             if (reorderedValues.every(isPlayerToken)) {
-                gameInfo.setGameEnded(true);
-                gameInfo.setWinner(getActivePlayer().getName());
+                gameInfo.setIsEnded(true);
+                gameInfo.setWinner(activePlayer.getName());
             };
         });
 
         // Loop to check if a player have won horizontally
         board.getBoard().forEach((row) => {
             if (row.every(isPlayerToken)) {
-                gameInfo.setGameEnded(true);
-                gameInfo.setWinner(getActivePlayer().getName());
+                gameInfo.setIsEnded(true);
+                gameInfo.setWinner(activePlayer.getName());
             };
         });
     };
@@ -171,7 +171,7 @@ const GameController = (
             });
         });
 
-        if (boardValues.every(isToken)) gameInfo.setGameTied(true);
+        if (boardValues.every(isToken)) gameInfo.setIsTied(true);
     };
 
     const playRound = (row, column) => {
@@ -180,10 +180,10 @@ const GameController = (
         if (board.getBoard()[row][column].getValue() !== '') return;
         
         // Make the selected cell take the value of players token
-        board.dropToken(row, column, getActivePlayer().getToken());
+        board.dropToken(row, column, activePlayer.getToken());
 
         checkForWin();
-        if (gameInfo.getGameEnded() === false) checkForTie();
+        if (gameInfo.getIsEnded() === false) checkForTie();
         
         switchPlayerTurn();
     };
@@ -192,8 +192,8 @@ const GameController = (
         playRound,
         getActivePlayer,
         getWinner: gameInfo.getWinner,
-        getGameEnded: gameInfo.getGameEnded,
-        getGameTied: gameInfo.getGameTied,
+        getIsEnded: gameInfo.getIsEnded,
+        getIsTied: gameInfo.getIsTied,
         getBoard: board.getBoard
     };
 };
