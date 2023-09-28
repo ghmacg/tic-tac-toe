@@ -32,6 +32,43 @@ const Cell = () => {
 };
 
 
+const Game = () => {
+    let gameEnded = false;
+
+    let gameTied = false;
+
+    let winner = undefined;
+
+    const setGameEnded = (boolean) => gameEnded = boolean;
+
+    const getGameEnded = () => gameEnded;
+
+    const setGameTied = (boolean) => gameTied = boolean;
+    
+    const getGameTied = () => gameTied;
+
+    const setWinner = (player) => winner = player; 
+    
+    const getWinner = () => winner;
+
+    const reset = () => {
+        gameEnded = false;
+        gameTied = false;
+        winner = undefined;
+    };
+    
+    return {
+        setGameEnded,
+        getGameEnded,
+        setGameTied,
+        getGameTied,
+        setWinner,
+        getWinner,
+        reset
+    };
+};
+
+
 // Logic of the gameboard
 const Gameboard = () => {
     // Define varibles for the area of gameboard,
@@ -71,22 +108,17 @@ const GameController = (
 ) => {
     // Initialize Gameboard and Players objects
     const board = Gameboard();
+    const gameInfo = Game();
     const playerOne = Player(playerOneName, 'X');
     const playerTwo = Player(playerTwoName, 'O');
 
     const players = [playerOne, playerTwo];
     let activePlayer = players[0];
 
-    let gameEnded = false;
-
     // Used to switch the active player when current player finishes his turn  
     const switchPlayerTurn = () => {
         activePlayer = activePlayer === players[0] ? players[1] : players[0];
     };
-    
-    const setGameEnded = (boolean) => gameEnded = boolean;
-
-    const getGameEnded = () => gameEnded;
 
     const getActivePlayer = () => activePlayer;
 
@@ -96,7 +128,7 @@ const GameController = (
         const combos = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [0, 1, 2], [2, 1, 0]];
         let combosResults = [];
 
-        const isToken = (currentCell) => currentCell.getValue() === getActivePlayer().getToken();
+        const isPlayerToken = (currentCell) => currentCell.getValue() === getActivePlayer().getToken();
         
         // Loop to take values of gameboard and order them as each combo
         combos.forEach((combo) => {
@@ -113,13 +145,33 @@ const GameController = (
         
         // Loop to check if a player have won vertically or diagonally
         combosResults.forEach((reorderedValues) => {
-            if (reorderedValues.every(isToken)) gameEnded = true;
+            if (reorderedValues.every(isPlayerToken)) {
+                gameInfo.setGameEnded(true);
+                gameInfo.setWinner(getActivePlayer().getName());
+            };
         });
 
         // Loop to check if a player have won horizontally
         board.getBoard().forEach((row) => {
-            if (row.every(isToken)) gameEnded = true;
+            if (row.every(isPlayerToken)) {
+                gameInfo.setGameEnded(true);
+                gameInfo.setWinner(getActivePlayer().getName());
+            };
         });
+    };
+
+    const checkForTie = () => {
+        let boardValues = [];
+
+        const isToken = (currentValue) => currentValue === 'X' || currentValue === 'O';
+
+        board.getBoard().forEach((row) => {
+            row.forEach((cell) => {
+                boardValues.push(cell.getValue());
+            });
+        });
+
+        if (boardValues.every(isToken)) gameInfo.setGameTied(true);
     };
 
     const playRound = (row, column) => {
@@ -131,14 +183,17 @@ const GameController = (
         board.dropToken(row, column, getActivePlayer().getToken());
 
         checkForWin();
+        if (gameInfo.getGameEnded() === false) checkForTie();
+        
         switchPlayerTurn();
     };
 
     return {
         playRound,
         getActivePlayer,
-        getGameEnded,
-        setGameEnded,
+        getWinner: gameInfo.getWinner,
+        getGameEnded: gameInfo.getGameEnded,
+        getGameTied: gameInfo.getGameTied,
         getBoard: board.getBoard
     };
 };
