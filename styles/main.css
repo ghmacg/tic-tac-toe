@@ -56,8 +56,6 @@ body {
 
 #turn {
     padding: 10px 20px;
-
-    box-shadow: var(--cell-shadow);
 }
 
 #restart {
@@ -67,7 +65,7 @@ body {
     cursor: pointer;
     border: none;
 
-    transition: transform 180ms;
+    transition: all 180ms;
 }
 
 #restart:hover {
@@ -77,6 +75,7 @@ body {
 }
 
 #restart:active {
+    background-color: #ff000077;
     transform: rotate(540deg);
 }
 
