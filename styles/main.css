@@ -1,1 +1,18 @@
 @import 'normalize.css';
+
+:root {
+    --font-family: 'Roboto', system-ui, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    
+    --bg-color: #ededed;
+
+    --text-lg: 80px;
+    --text-md: 60px;
+    --text-sm: 20px;
+    --text-bold: 700;
+    --text-color: #333;
+
+    --cell-bg: #fefefe;
+    --cell-shadow: 0px 8px 15px #00000010;
+    --cell-border-radius: 25px;
+}
+
