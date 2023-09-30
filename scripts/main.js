@@ -15,8 +15,10 @@ const Player = (
 
 
 // Factory function to create the cell object for each space in the gameboard
-const Cell = () => {
+const Cell = (row, column) => {
     let value = '';
+    let rowIndex = row;
+    let columnIndex = column;
 
     const addToken = player => {
         value = player;
@@ -24,9 +26,15 @@ const Cell = () => {
 
     const getToken = () => value;
 
+    const getRowIndex = () => rowIndex;
+
+    const getColumnIndex = () => columnIndex;
+
     return {
         addToken,
-        getToken
+        getToken,
+        getRowIndex,
+        getColumnIndex
     };
 };
 
@@ -46,10 +54,10 @@ const Gameboard = () => {
     **      [ {Cell}, {Cell}, {Cell} ]
     **  ]
     */
-    for (let i = 0; i < rows; i++) {
-        board[i] = [];
-        for (let j = 0; j < columns; j++) {
-            board[i].push(Cell());
+    for (let row = 0; row < rows; row++) {
+        board[row] = [];
+        for (let column = 0; column < columns; column++) {
+            board[row].push(Cell(row, column));
         };
     };
 
@@ -115,13 +123,13 @@ const GameController = (
     const getEmptyCells = () => {
         let emptyCells = [];
 
-        boardArray.forEach((row, rowIndex) => {
-            row.forEach((cell, columnIndex) => {
+        boardArray.forEach(row => {
+            row.forEach(cell => {
                 let cellToken = cell.getToken();
 
                 if (cellToken === '') emptyCells.push({
-                    rowIndex: rowIndex, 
-                    columnIndex: columnIndex,
+                    rowIndex: cell.getRowIndex(), 
+                    columnIndex: cell.getColumnIndex(),
                 });
             });
         });
@@ -309,7 +317,7 @@ const screenController = (() => {
         boardDiv.textContent = '';
 
         const boardArray = game.getBoard();
-        const activePlayer = game.getActivePlayer();
+        const activePlayerName = game.getActivePlayer().getName();
         const isEnded = game.getIsEnded();
         const isTied = game.getIsTied();
         const winner = game.getWinner();
@@ -319,17 +327,17 @@ const screenController = (() => {
         } else if (isTied) {
             playerTurnDiv.textContent = 'Tie!';
         } else {
-            playerTurnDiv.textContent = `${activePlayer.getName()}'s turn...`;
+            playerTurnDiv.textContent = `${activePlayerName}'s turn...`;
         };
 
-        boardArray.forEach((row, rowIndex) => {
-            row.forEach((cell, columnIndex) => {
+        boardArray.forEach(row => {
+            row.forEach(cell => {
                 const cellButton = document.createElement("button");
                 cellButton.classList.add("cell");
                 
                 // Define datasets in each element to identify each cell easier
-                cellButton.dataset.row = rowIndex;
-                cellButton.dataset.column = columnIndex;
+                cellButton.dataset.row = cell.getRowIndex();
+                cellButton.dataset.column = cell.getColumnIndex();
 
                 // Update the displayed value 
                 cellButton.textContent = cell.getToken();
@@ -341,13 +349,13 @@ const screenController = (() => {
     function clickHandlerBoard (e) {
         const isEnded = game.getIsEnded();
         const isTied = game.getIsTied();
-        const activePlayer = game.getActivePlayer();
+        const activePlayerName = game.getActivePlayer().getName();
         const selectedRow = e.target.dataset.row;
         const selectedColumn = e.target.dataset.column;
         
         if (!selectedColumn && !selectedRow) return;
         if (isEnded || isTied) return;        
-        if (activePlayer.getName() === 'AI') return;
+        if (activePlayerName === 'AI') return;
         
         game.playRound(selectedRow, selectedColumn);
         updateScreen();
