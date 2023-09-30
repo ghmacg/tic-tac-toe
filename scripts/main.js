@@ -111,6 +111,115 @@ const GameController = (
         winner = undefined;
     };
 
+    const getEmptyCells = () => {
+        let emptyCells = [];
+
+        let i = 0;
+        board.getBoard().forEach((row, rowIndex) => {
+            row.forEach((cell, columnIndex) => {
+                if (cell.getValue() === '') emptyCells.push({
+                    rowIndex: rowIndex, 
+                    columnIndex: columnIndex,
+                    emptyValue: cell.getValue()
+                });
+
+                i++;
+            });
+        });
+
+        return emptyCells;
+    };
+
+    const getBoardReordered = () => {
+        let reorderedBoard = [];
+
+        board.getBoard().forEach((row) => {
+            row.forEach((cell) => {
+                reorderedBoard.push(cell.getValue());
+            });
+        });
+
+        return reorderedBoard;
+    };
+
+    function winning (board, player) {
+        if (
+                (board[0] == player && board[1] == player && board[2] == player) ||
+                (board[3] == player && board[4] == player && board[5] == player) ||
+                (board[6] == player && board[7] == player && board[8] == player) ||
+                (board[0] == player && board[3] == player && board[6] == player) ||
+                (board[1] == player && board[4] == player && board[7] == player) ||
+                (board[2] == player && board[5] == player && board[8] == player) ||
+                (board[0] == player && board[4] == player && board[8] == player) ||
+                (board[2] == player && board[4] == player && board[6] == player)
+        ) {
+            return true;
+        } else {
+            return false;
+        };
+    };
+
+    const minimax = (player) => {
+        let availableCells = getEmptyCells();
+        let reorderedBoard = getBoardReordered();
+
+        if (winning(reorderedBoard, playerOne.getToken())) {
+            return {score: -10};
+        } else if (winning(reorderedBoard, playerTwo.getToken())) {
+            return {score: +10};
+        } else if (availableCells.length === 0) {
+            return {score: 0};
+        };
+
+        let moves = [];
+
+        for (let i = 0; i < availableCells.length; i++) {
+            let move = {};
+            let row = availableCells[i].rowIndex;
+            let column = availableCells[i].columnIndex;
+            let emptyValue = availableCells[i].emptyValue;
+            move.row = row;
+            move.column = column;
+            
+            board.dropToken(row, column, player.getToken());
+
+            if (player === playerTwo) {
+                let result = minimax(playerOne);
+                move.score = result.score;
+            } else {
+                let result = minimax(playerTwo);
+                move.score = result.score;
+            }
+
+            board.dropToken(row, column, emptyValue);
+            moves.push(move)
+        };
+
+        let bestMove;
+
+        if (player === playerTwo) {
+            let bestScore = -10000;
+
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score > bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                };
+            };
+        } else {
+            let bestScore = 10000;
+
+            for (let i = 0; i < moves.length; i++) {
+                if (moves[i].score < bestScore) {
+                    bestScore = moves[i].score;
+                    bestMove = i;
+                };
+            };
+        };
+        
+        return moves[bestMove];
+    };
+
     const checkForWin = () => {
         // Vertical and diagonal combinations to win,
         // each number in each array corresponds to an index
@@ -174,8 +283,18 @@ const GameController = (
 
         checkForWin();
         if (!isEnded) checkForTie();
+        if (isEnded || isTied) return;
         
         switchPlayerTurn();
+        
+        AISelection = minimax(activePlayer);
+        board.dropToken(AISelection.row, AISelection.column, activePlayer.getToken());
+        
+        checkForWin();
+        if (!isEnded) checkForTie();
+        
+        switchPlayerTurn();
+;
     };
 
     return {
@@ -193,7 +312,7 @@ const GameController = (
 // Immediately Invoked Function that controls the display
 const screenController = (() => {
     // Initialize the game with GameController
-    const game = GameController();
+    const game = GameController('Human', 'AI');
 
     // Queries for the display
     const playerTurnDiv = document.getElementById('turn');
@@ -240,6 +359,8 @@ const screenController = (() => {
         if (!selectedColumn && !selectedRow) return;
 
         if (game.getIsEnded() || game.getIsTied()) return;
+
+        if (game.getActivePlayer().getName() === 'AI') return;
         
         // Call playround function with the selected cell and update the display
         game.playRound(selectedRow, selectedColumn);
