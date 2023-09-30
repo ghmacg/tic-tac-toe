@@ -99,12 +99,15 @@ const GameController = (
     let isEnded = false;
     let isDraw = false;
     let winner = undefined;
+    let winningCells = [];
 
     const getIsEnded = () => isEnded;
     
     const getIsDraw = () => isDraw;
     
     const getWinner = () => winner;
+
+    const getWinningCells = () => winningCells;
 
     const getActivePlayer = () => activePlayer;
 
@@ -116,6 +119,7 @@ const GameController = (
         isEnded = false;
         isDraw = false;
         winner = undefined;
+        winningCells = [];
     };
 
     // Get cells where no player have played and make an array with each index, 
@@ -160,29 +164,51 @@ const GameController = (
         return reorderedBoard;
     };
 
-    function winning (originalBoard, playerToken) {
+    function winning (reorderedBoard, playerToken) {
         let tokensBoard = [];
 
-        originalBoard.forEach(cell => {
+        reorderedBoard.forEach(cell => {
             let cellToken = cell.getToken();
-
             tokensBoard.push(cellToken);
         });
 
         if (
-                (tokensBoard[0] == playerToken && tokensBoard[1] == playerToken && tokensBoard[2] == playerToken) ||
-                (tokensBoard[3] == playerToken && tokensBoard[4] == playerToken && tokensBoard[5] == playerToken) ||
-                (tokensBoard[6] == playerToken && tokensBoard[7] == playerToken && tokensBoard[8] == playerToken) ||
-                (tokensBoard[0] == playerToken && tokensBoard[3] == playerToken && tokensBoard[6] == playerToken) ||
-                (tokensBoard[1] == playerToken && tokensBoard[4] == playerToken && tokensBoard[7] == playerToken) ||
-                (tokensBoard[2] == playerToken && tokensBoard[5] == playerToken && tokensBoard[8] == playerToken) ||
-                (tokensBoard[0] == playerToken && tokensBoard[4] == playerToken && tokensBoard[8] == playerToken) ||
-                (tokensBoard[2] == playerToken && tokensBoard[4] == playerToken && tokensBoard[6] == playerToken)
+                ((tokensBoard[0] == playerToken) && (tokensBoard[1] == playerToken) && (tokensBoard[2] == playerToken)) ||
+                ((tokensBoard[3] == playerToken) && (tokensBoard[4] == playerToken) && (tokensBoard[5] == playerToken)) ||
+                ((tokensBoard[6] == playerToken) && (tokensBoard[7] == playerToken) && (tokensBoard[8] == playerToken)) ||
+                ((tokensBoard[0] == playerToken) && (tokensBoard[3] == playerToken) && (tokensBoard[6] == playerToken)) ||
+                ((tokensBoard[1] == playerToken) && (tokensBoard[4] == playerToken) && (tokensBoard[7] == playerToken)) ||
+                ((tokensBoard[2] == playerToken) && (tokensBoard[5] == playerToken) && (tokensBoard[8] == playerToken)) ||
+                ((tokensBoard[0] == playerToken) && (tokensBoard[4] == playerToken) && (tokensBoard[8] == playerToken)) ||
+                ((tokensBoard[2] == playerToken) && (tokensBoard[4] == playerToken) && (tokensBoard[6] == playerToken))
         ) {
             return true;
         } else {
             return false;
         };
+    };
+
+    const setWinningCells = () => {
+        const combos = [
+            [originalBoard[0][0], originalBoard[0][1], originalBoard[0][2]],
+            [originalBoard[1][0], originalBoard[1][1], originalBoard[1][2]],
+            [originalBoard[2][0], originalBoard[2][1], originalBoard[2][2]],
+            [originalBoard[0][0], originalBoard[1][0], originalBoard[2][0]],
+            [originalBoard[0][1], originalBoard[1][1], originalBoard[2][1]],
+            [originalBoard[0][2], originalBoard[1][2], originalBoard[2][2]],
+            [originalBoard[0][0], originalBoard[1][1], originalBoard[2][2]],
+            [originalBoard[0][2], originalBoard[1][1], originalBoard[2][0]]
+        ];
+        
+        const isTrue = currentCell => currentCell.getToken() == activePlayer.getToken();
+        
+        combos.forEach(combo => {
+            if(combo.every(isTrue)) {
+                combo.forEach(cell => {
+                    winningCells.push(cell);
+                });
+            };
+        });
     };
 
     // Minimax Algorithm 
@@ -265,6 +291,7 @@ const GameController = (
         const playerName = activePlayer.getName();
 
         if (winning(reorderedBoard, playerToken)) {
+            setWinningCells();
             isEnded = true;
             winner = playerName;
         };
@@ -305,6 +332,7 @@ const GameController = (
         getWinner,
         getIsEnded,
         getIsDraw,
+        getWinningCells,
         restart,
         getBoard: board.getBoard
     };
@@ -313,7 +341,9 @@ const GameController = (
 
 // Immediately Invoked Function that controls the display
 const screenController = (() => {
-    const game = GameController('Human', 'AI');
+    const playerOne = 'Human';
+    const playerTwo = 'AI';
+    const game = GameController(playerOne, playerTwo);
 
     const playerTurnDiv = document.getElementById('turn');
     const boardDiv = document.getElementById('board');
@@ -323,7 +353,7 @@ const screenController = (() => {
         boardDiv.textContent = '';
 
         const originalBoard = game.getBoard();
-        const activePlayerName = game.getActivePlayer().getName();
+        const activePlayer = game.getActivePlayer().getName();
         const isEnded = game.getIsEnded();
         const isDraw = game.getIsDraw();
         const winner = game.getWinner();
@@ -331,19 +361,44 @@ const screenController = (() => {
         if (isEnded) {
             playerTurnDiv.textContent = `${winner} won!`;
         } else if (isDraw) {
-            playerTurnDiv.textContent = 'Tie!';
+            playerTurnDiv.textContent = 'Draw!';
         } else {
-            playerTurnDiv.textContent = `${activePlayerName}'s turn...`;
+            playerTurnDiv.textContent = `${activePlayer}'s turn...`;
         };
 
-        originalBoard.forEach(row => {
-            row.forEach(cell => {
+        originalBoard.forEach((row, rowIndex) => {
+            row.forEach((cell, columnIndex) => {
                 const cellButton = document.createElement("button");
                 cellButton.classList.add("cell");
+
+                if (isEnded) {
+                    const winningCells = game.getWinningCells();
+                    
+                    for (let i = 0; i < winningCells.length; i++) {
+                        let possibleRowIndex = winningCells[i].getRowIndex();
+                        let possibleColumnIndex = winningCells[i].getColumnIndex();
+
+                        if (
+                            (winner === playerOne) && 
+                            (possibleRowIndex === rowIndex) && 
+                            (possibleColumnIndex === columnIndex)
+                        ) {
+                            cellButton.classList.add('player-one-win');
+                        } else if (
+                            (winner === playerTwo) && 
+                            (possibleRowIndex === rowIndex) && 
+                            (possibleColumnIndex === columnIndex)
+                        ) {
+                            cellButton.classList.add('player-two-win');
+                        }
+                    }
+                } else if (isDraw) {
+                    cellButton.classList.add('draw');
+                };
                 
                 // Define datasets in each element to identify each cell easier
-                cellButton.dataset.row = cell.getRowIndex();
-                cellButton.dataset.column = cell.getColumnIndex();
+                cellButton.dataset.row = rowIndex;
+                cellButton.dataset.column = columnIndex;
 
                 // Update the displayed value 
                 cellButton.textContent = cell.getToken();
@@ -355,13 +410,13 @@ const screenController = (() => {
     function clickHandlerBoard (e) {
         const isEnded = game.getIsEnded();
         const isDraw = game.getIsDraw();
-        const activePlayerName = game.getActivePlayer().getName();
+        const activePlayer = game.getActivePlayer().getName();
         const selectedRow = e.target.dataset.row;
         const selectedColumn = e.target.dataset.column;
         
         if (!selectedColumn && !selectedRow) return;
         if (isEnded || isDraw) return;        
-        if (activePlayerName === 'AI') return;
+        if (activePlayer === playerTwo) return;
         
         game.playRound(selectedRow, selectedColumn);
         updateScreen();
