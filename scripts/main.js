@@ -18,8 +18,7 @@ const Player = (
 const Cell = () => {
     let value = '';
 
-    // Changes the cell value to the players token value
-    const addToken = (player) => {
+    const addToken = player => {
         value = player;
     };
 
@@ -39,8 +38,14 @@ const Gameboard = () => {
     const rows = 3;
     const columns = 3;
     const board = [];
-    // Push into board 3 arrays with 3 cell spaces in each,
-    // to simulate the area we want for the game
+    /* Push into board 3 arrays with 3 cell spaces in each,
+    ** to simulate the area we want for the game ex.
+    **  [   
+    **      [ {Cell}, {Cell}, {Cell} ],
+    **      [ {Cell}, {Cell}, {Cell} ],
+    **      [ {Cell}, {Cell}, {Cell} ]
+    **  ]
+    */
     for (let i = 0; i < rows; i++) {
         board[i] = [];
         for (let j = 0; j < columns; j++) {
@@ -51,8 +56,8 @@ const Gameboard = () => {
     const getBoard = () => board; 
 
     const restartBoard = () => {
-        board.forEach((row) => {
-            row.forEach((cell) => {
+        board.forEach(row => {
+            row.forEach(cell => {
                 cell.addToken('');
             });
         });
@@ -73,35 +78,29 @@ const Gameboard = () => {
 
 // Logic of the game
 const GameController = (
-    // If no names assigned these are the default names
     playerOneName = 'Player One',
     playerTwoName = 'Player Two'
 ) => {
-    // Initialize Gameboard and Players objects
     const board = Gameboard();
     const playerOne = Player(playerOneName, 'X');
     const playerTwo = Player(playerTwoName, 'O');
-
+    
+    const boardArray = board.getBoard();
     const players = [playerOne, playerTwo];
     let activePlayer = players[0];
-
-    // Game info variables
     let isEnded = false;
     let isTied = false;
     let winner = undefined;
-
-    // Switch the active player when current player finishes his turn  
-    const switchPlayerTurn = () => {
-        activePlayer = activePlayer === players[0] ? players[1] : players[0];
-    };
-
-    const getActivePlayer = () => activePlayer;
 
     const getIsEnded = () => isEnded;
     
     const getIsTied = () => isTied;
     
     const getWinner = () => winner;
+
+    const getActivePlayer = () => activePlayer;
+
+    const switchPlayerTurn = () => activePlayer = activePlayer === players[0] ? players[1] : players[0];
 
     const restart = () => {
         board.restartBoard();
@@ -111,38 +110,51 @@ const GameController = (
         winner = undefined;
     };
 
+    // Get cells where no player have played and make an array with each index, 
+    // each index is composed of row index and column index
     const getEmptyCells = () => {
         let emptyCells = [];
 
-        let i = 0;
-        board.getBoard().forEach((row, rowIndex) => {
+        boardArray.forEach((row, rowIndex) => {
             row.forEach((cell, columnIndex) => {
-                if (cell.getValue() === '') emptyCells.push({
+                let cellValue = cell.getValue();
+
+                if (cellValue === '') emptyCells.push({
                     rowIndex: rowIndex, 
                     columnIndex: columnIndex,
-                    emptyValue: cell.getValue()
                 });
-
-                i++;
             });
         });
 
         return emptyCells;
     };
 
+    /* Get the board values reordered in a simple array...
+    **
+    ** simple array ex. ['X', '', '', 'O', 'X', '', 'X', '', 'O']
+    **
+    ** original array with same values ex.
+    **  [   
+    **      [ {Cell.value = 'X'}, {Cell.value = ''}, {Cell.value = ''} ],
+    **      [ {CellCell.value = 'O'}, {Cell.value = 'X'}, {CellCell.value = ''} ],
+    **      [ {Cell.value = 'X'}, {CellCell.value = ''}, {CellCell.value = 'O'} ]
+    **  ] 
+    */
     const getBoardReordered = () => {
         let reorderedBoard = [];
 
-        board.getBoard().forEach((row) => {
-            row.forEach((cell) => {
-                reorderedBoard.push(cell.getValue());
+        boardArray.forEach(row => {
+            row.forEach(cell => {
+                let cellValue = cell.getValue();
+
+                reorderedBoard.push(cellValue);
             });
         });
 
         return reorderedBoard;
     };
 
-    function winning (board, player) {
+    function winningMinimax (board, player) {
         if (
                 (board[0] == player && board[1] == player && board[2] == player) ||
                 (board[3] == player && board[4] == player && board[5] == player) ||
@@ -159,13 +171,18 @@ const GameController = (
         };
     };
 
+    // Minimax Algorithm 
     const minimax = (player) => {
+        const playerOneToken = playerOne.getToken();
+        const playerTwoToken = playerTwo.getToken();
         let availableCells = getEmptyCells();
         let reorderedBoard = getBoardReordered();
+        let playerToken = player.getToken();
 
-        if (winning(reorderedBoard, playerOne.getToken())) {
+        // Checks for the terminal states such as win, lose, and tie and returns a value accordingly
+        if (winningMinimax(reorderedBoard, playerOneToken)) {
             return {score: -10};
-        } else if (winning(reorderedBoard, playerTwo.getToken())) {
+        } else if (winningMinimax(reorderedBoard, playerTwoToken)) {
             return {score: +10};
         } else if (availableCells.length === 0) {
             return {score: 0};
@@ -173,30 +190,36 @@ const GameController = (
 
         let moves = [];
 
+        // Loop through available cells, 
+        // create an object for each and store the index of that cell
         for (let i = 0; i < availableCells.length; i++) {
             let move = {};
             let row = availableCells[i].rowIndex;
             let column = availableCells[i].columnIndex;
-            let emptyValue = availableCells[i].emptyValue;
             move.row = row;
             move.column = column;
             
-            board.dropToken(row, column, player.getToken());
+            // Set the empty cell to the current player token
+            board.dropToken(row, column, playerToken);
 
+            // Collect the score resulted from calling minimax on the opponent of the current player
             if (player === playerTwo) {
                 let result = minimax(playerOne);
                 move.score = result.score;
             } else {
                 let result = minimax(playerTwo);
                 move.score = result.score;
-            }
+            };
 
-            board.dropToken(row, column, emptyValue);
+            // Reset the spot to empty
+            board.dropToken(row, column, '');
+
             moves.push(move)
         };
 
         let bestMove;
 
+        // If it is the AI's turn loop over the moves and choose the move with the highest score
         if (player === playerTwo) {
             let bestScore = -10000;
 
@@ -207,6 +230,7 @@ const GameController = (
                 };
             };
         } else {
+            // Else loop over the moves and choose the move with the lowest score
             let bestScore = 10000;
 
             for (let i = 0; i < moves.length; i++) {
@@ -217,6 +241,7 @@ const GameController = (
             };
         };
         
+        // Return the chosen move object from the array to the higher depth
         return moves[bestMove];
     };
 
@@ -226,15 +251,15 @@ const GameController = (
         const combos = [[0, 0, 0], [1, 1, 1], [2, 2, 2], [0, 1, 2], [2, 1, 0]];
         let combosResults = [];
 
-        const isPlayerToken = (currentCell) => currentCell.getValue() === activePlayer.getToken();
+        const isPlayerToken = currentCell => currentCell.getValue() === activePlayer.getToken();
         
         // Take values of gameboard and order them as each combo
-        combos.forEach((combo) => {
+        combos.forEach(combo => {
             const reorderedValues = [];
             let row = 0;
 
-            combo.forEach((index) => {
-                reorderedValues.push(board.getBoard()[row][index]);
+            combo.forEach(index => {
+                reorderedValues.push(boardArray[row][index]);
                 row++;
             });
             
@@ -242,7 +267,7 @@ const GameController = (
         });
         
         // Check if a player have won vertically or diagonally
-        combosResults.forEach((reorderedValues) => {
+        combosResults.forEach(reorderedValues => {
             if (reorderedValues.every(isPlayerToken)) {
                 isEnded = true;
                 winner = activePlayer.getName();
@@ -250,7 +275,7 @@ const GameController = (
         });
 
         // Check if a player have won horizontally
-        board.getBoard().forEach((row) => {
+        boardArray.forEach(row => {
             if (row.every(isPlayerToken)) {
                 isEnded = true;
                 winner = activePlayer.getName();
@@ -261,11 +286,10 @@ const GameController = (
     const checkForTie = () => {
         let boardValues = [];
 
-        const isToken = (currentValue) => currentValue === 'X' || currentValue === 'O';
+        const isToken = currentValue => currentValue === 'X' || currentValue === 'O';
 
-        // Take all values of gameboard, including blank spaces
-        board.getBoard().forEach((row) => {
-            row.forEach((cell) => {
+        boardArray.forEach(row => {
+            row.forEach(cell => {
                 boardValues.push(cell.getValue());
             });
         });
@@ -275,10 +299,9 @@ const GameController = (
     };
 
     const playRound = (row, column) => {
-        // First check if the value of the selected cell is already played
-        if (board.getBoard()[row][column].getValue() !== '') return;
+        // Check if the value of the selected cell is already played
+        if (boardArray[row][column].getValue() !== '') return;
         
-        // Make the selected cell take the value of players token
         board.dropToken(row, column, activePlayer.getToken());
 
         checkForWin();
@@ -287,14 +310,15 @@ const GameController = (
         
         switchPlayerTurn();
         
-        AISelection = minimax(activePlayer);
-        board.dropToken(AISelection.row, AISelection.column, activePlayer.getToken());
+        AI = minimax(activePlayer);
+        row = AI.row;
+        column = AI.column;
+        board.dropToken(row, column, activePlayer.getToken());
         
         checkForWin();
         if (!isEnded) checkForTie();
         
         switchPlayerTurn();
-;
     };
 
     return {
@@ -311,39 +335,38 @@ const GameController = (
 
 // Immediately Invoked Function that controls the display
 const screenController = (() => {
-    // Initialize the game with GameController
     const game = GameController('Human', 'AI');
 
-    // Queries for the display
     const playerTurnDiv = document.getElementById('turn');
     const boardDiv = document.getElementById('board');
     const restartButton = document.getElementById('restart');
 
     const updateScreen = () => {
-        // Reset the board div content
         boardDiv.textContent = '';
 
-        const board = game.getBoard();
+        const boardArray = game.getBoard();
         const activePlayer = game.getActivePlayer();
+        const isEnded = game.getIsEnded();
+        const isTied = game.getIsTied();
+        const winner = game.getWinner();
 
-        // Update turn div text depending on game status
-        if (game.getIsEnded()) {
-            playerTurnDiv.textContent = `${game.getWinner()} won!`;
-        } else if (game.getIsTied()) {
+        if (isEnded) {
+            playerTurnDiv.textContent = `${winner} won!`;
+        } else if (isTied) {
             playerTurnDiv.textContent = 'Tie!';
         } else {
             playerTurnDiv.textContent = `${activePlayer.getName()}'s turn...`;
-        }
+        };
 
-        // Loop through each cell in the board array 
-        board.forEach((row, rowIndex) => {
+        boardArray.forEach((row, rowIndex) => {
             row.forEach((cell, columnIndex) => {
                 const cellButton = document.createElement("button");
                 cellButton.classList.add("cell");
                 
                 // Define datasets in each element to identify each cell easier
-                cellButton.dataset.column = columnIndex;
                 cellButton.dataset.row = rowIndex;
+                cellButton.dataset.column = columnIndex;
+
                 // Update the displayed value 
                 cellButton.textContent = cell.getValue();
                 boardDiv.appendChild(cellButton);
@@ -352,17 +375,16 @@ const screenController = (() => {
     };
 
     function clickHandlerBoard (e) {
-        // Get datasets values of the clicked cell 
+        const isEnded = game.getIsEnded();
+        const isTied = game.getIsTied();
+        const activePlayer = game.getActivePlayer();
         const selectedRow = e.target.dataset.row;
         const selectedColumn = e.target.dataset.column;
-        // Check to make sure the cell is clicked and not the space in between 
-        if (!selectedColumn && !selectedRow) return;
-
-        if (game.getIsEnded() || game.getIsTied()) return;
-
-        if (game.getActivePlayer().getName() === 'AI') return;
         
-        // Call playround function with the selected cell and update the display
+        if (!selectedColumn && !selectedRow) return;
+        if (isEnded || isTied) return;        
+        if (activePlayer.getName() === 'AI') return;
+        
         game.playRound(selectedRow, selectedColumn);
         updateScreen();
     };
