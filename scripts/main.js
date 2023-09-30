@@ -93,16 +93,16 @@ const GameController = (
     const playerOne = Player(playerOneName, 'X');
     const playerTwo = Player(playerTwoName, 'O');
     
-    const boardArray = board.getBoard();
+    const originalBoard = board.getBoard();
     const players = [playerOne, playerTwo];
     let activePlayer = players[0];
     let isEnded = false;
-    let isTied = false;
+    let isDraw = false;
     let winner = undefined;
 
     const getIsEnded = () => isEnded;
     
-    const getIsTied = () => isTied;
+    const getIsDraw = () => isDraw;
     
     const getWinner = () => winner;
 
@@ -114,7 +114,7 @@ const GameController = (
         board.restartBoard();
         activePlayer = players[0];
         isEnded = false;
-        isTied = false;
+        isDraw = false;
         winner = undefined;
     };
 
@@ -123,7 +123,7 @@ const GameController = (
     const getEmptyCells = () => {
         let emptyCells = [];
 
-        boardArray.forEach(row => {
+        originalBoard.forEach(row => {
             row.forEach(cell => {
                 let cellToken = cell.getToken();
 
@@ -137,41 +137,47 @@ const GameController = (
         return emptyCells;
     };
 
-    /* Get the board values reordered in a simple array...
+    /* Get the board cell objects reordered in a simple array...
     **
-    ** simple array ex. ['X', '', '', 'O', 'X', '', 'X', '', 'O']
+    ** simple array ex. [{Cell}, {Cell}, {Cell}, {Cell}, {Cell}, {Cell}, {Cell}, {Cell}, {Cell}]
     **
-    ** original array with same values ex.
+    ** original array with ex.
     **  [   
-    **      [ {Cell.value = 'X'}, {Cell.value = ''}, {Cell.value = ''} ],
-    **      [ {CellCell.value = 'O'}, {Cell.value = 'X'}, {CellCell.value = ''} ],
-    **      [ {Cell.value = 'X'}, {CellCell.value = ''}, {CellCell.value = 'O'} ]
+    **      [ {Cell}, {Cell}, {Cell} ],
+    **      [ {Cell}, {Cell}, {Cell} ],
+    **      [ {Cell}, {Cell}, {Cell} ]
     **  ] 
     */
     const getReorderedBoard = () => {
         let reorderedBoard = [];
 
-        boardArray.forEach(row => {
+        originalBoard.forEach(row => {
             row.forEach(cell => {
-                let cellToken = cell.getToken();
-
-                reorderedBoard.push(cellToken);
+                reorderedBoard.push(cell);
             });
         });
 
         return reorderedBoard;
     };
 
-    function winning (board, playerToken) {
+    function winning (originalBoard, playerToken) {
+        let tokensBoard = [];
+
+        originalBoard.forEach(cell => {
+            let cellToken = cell.getToken();
+
+            tokensBoard.push(cellToken);
+        });
+
         if (
-                (board[0] == playerToken && board[1] == playerToken && board[2] == playerToken) ||
-                (board[3] == playerToken && board[4] == playerToken && board[5] == playerToken) ||
-                (board[6] == playerToken && board[7] == playerToken && board[8] == playerToken) ||
-                (board[0] == playerToken && board[3] == playerToken && board[6] == playerToken) ||
-                (board[1] == playerToken && board[4] == playerToken && board[7] == playerToken) ||
-                (board[2] == playerToken && board[5] == playerToken && board[8] == playerToken) ||
-                (board[0] == playerToken && board[4] == playerToken && board[8] == playerToken) ||
-                (board[2] == playerToken && board[4] == playerToken && board[6] == playerToken)
+                (tokensBoard[0] == playerToken && tokensBoard[1] == playerToken && tokensBoard[2] == playerToken) ||
+                (tokensBoard[3] == playerToken && tokensBoard[4] == playerToken && tokensBoard[5] == playerToken) ||
+                (tokensBoard[6] == playerToken && tokensBoard[7] == playerToken && tokensBoard[8] == playerToken) ||
+                (tokensBoard[0] == playerToken && tokensBoard[3] == playerToken && tokensBoard[6] == playerToken) ||
+                (tokensBoard[1] == playerToken && tokensBoard[4] == playerToken && tokensBoard[7] == playerToken) ||
+                (tokensBoard[2] == playerToken && tokensBoard[5] == playerToken && tokensBoard[8] == playerToken) ||
+                (tokensBoard[0] == playerToken && tokensBoard[4] == playerToken && tokensBoard[8] == playerToken) ||
+                (tokensBoard[2] == playerToken && tokensBoard[4] == playerToken && tokensBoard[6] == playerToken)
         ) {
             return true;
         } else {
@@ -264,21 +270,21 @@ const GameController = (
         };
     };
 
-    const checkForTie = () => {
+    const checkForDraw = () => {
         let emptyCells = getEmptyCells();
 
-        if (emptyCells.length === 0) isTied = true;
+        if (emptyCells.length === 0) isDraw = true;
     };
 
     const playRound = (row, column) => {
         // Check if the value of the selected cell is already played
-        if (boardArray[row][column].getToken() !== '') return;
+        if (originalBoard[row][column].getToken() !== '') return;
         
         board.dropToken(row, column, activePlayer.getToken());
 
         checkForWin();
-        if (!isEnded) checkForTie();
-        if (isEnded || isTied) return;
+        if (!isEnded) checkForDraw();
+        if (isEnded || isDraw) return;
         
         switchPlayerTurn();
         
@@ -288,7 +294,7 @@ const GameController = (
         board.dropToken(row, column, activePlayer.getToken());
         
         checkForWin();
-        if (!isEnded) checkForTie();
+        if (!isEnded) checkForDraw();
         
         switchPlayerTurn();
     };
@@ -298,7 +304,7 @@ const GameController = (
         getActivePlayer,
         getWinner,
         getIsEnded,
-        getIsTied,
+        getIsDraw,
         restart,
         getBoard: board.getBoard
     };
@@ -316,21 +322,21 @@ const screenController = (() => {
     const updateScreen = () => {
         boardDiv.textContent = '';
 
-        const boardArray = game.getBoard();
+        const originalBoard = game.getBoard();
         const activePlayerName = game.getActivePlayer().getName();
         const isEnded = game.getIsEnded();
-        const isTied = game.getIsTied();
+        const isDraw = game.getIsDraw();
         const winner = game.getWinner();
 
         if (isEnded) {
             playerTurnDiv.textContent = `${winner} won!`;
-        } else if (isTied) {
+        } else if (isDraw) {
             playerTurnDiv.textContent = 'Tie!';
         } else {
             playerTurnDiv.textContent = `${activePlayerName}'s turn...`;
         };
 
-        boardArray.forEach(row => {
+        originalBoard.forEach(row => {
             row.forEach(cell => {
                 const cellButton = document.createElement("button");
                 cellButton.classList.add("cell");
@@ -348,13 +354,13 @@ const screenController = (() => {
 
     function clickHandlerBoard (e) {
         const isEnded = game.getIsEnded();
-        const isTied = game.getIsTied();
+        const isDraw = game.getIsDraw();
         const activePlayerName = game.getActivePlayer().getName();
         const selectedRow = e.target.dataset.row;
         const selectedColumn = e.target.dataset.column;
         
         if (!selectedColumn && !selectedRow) return;
-        if (isEnded || isTied) return;        
+        if (isEnded || isDraw) return;        
         if (activePlayerName === 'AI') return;
         
         game.playRound(selectedRow, selectedColumn);
