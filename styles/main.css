@@ -25,10 +25,14 @@ body {
     color: var(--text-color);
 }
 
-#container {
+#container,
+#title-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+#container {
     gap: 3rem;
 }
 
