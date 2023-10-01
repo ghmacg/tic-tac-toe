@@ -104,3 +104,15 @@ body {
     border: none;
     border-radius: var(--cell-border-radius);
 }
+
+.player-one-win {
+    background-color: #D6E9FF;
+}
+
+.player-two-win {
+    background-color: #FFD4B1;
+}
+
+.draw {
+    background-color: #FFF7C7;
+}
